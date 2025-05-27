@@ -1,103 +1,198 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { BitcoinChart } from '@/components/BitcoinChart';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { Header } from '@/components/Header';
+import { ControlPanel } from '@/components/ControlPanel';
+import { PriceInfo } from '@/components/PriceInfo';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useBinanceData } from '@/hooks/useBinanceData';
+import { CandlestickData, VolumeData, TimeFrame, TechnicalIndicators } from '@/types/chart';
+import { getBinanceInterval } from '@/lib/utils'; // For timeframe to ms conversion
+
+// Helper to get timeframe duration in milliseconds
+const getTimeFrameDurationMs = (tf: TimeFrame): number => {
+  const unit = tf.slice(-1);
+  const value = parseInt(tf.slice(0, -1));
+  if (unit === 'm') return value * 60 * 1000;
+  if (unit === 'h') return value * 60 * 60 * 1000;
+  if (unit === 'd') return value * 24 * 60 * 60 * 1000;
+  if (unit === 'w') return value * 7 * 24 * 60 * 60 * 1000;
+  if (unit === 'M') return value * 30 * 24 * 60 * 60 * 1000; // Approx
+  return 60 * 1000; // Default to 1 minute
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>('1m');
+  const [candlestickData, setCandlestickData] = useState<CandlestickData[]>([]);
+  const [volumeData, setVolumeData] = useState<VolumeData[]>([]);
+  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [priceChange, setPriceChange] = useState<number>(0); // This will represent change from initialPriceForDay
+  const [initialPriceForDay, setInitialPriceForDay] = useState<number>(0); // Store a reference price for % change calculation
+  const [indicators, setIndicators] = useState<TechnicalIndicators>({ rsi: false, macd: false });
+  const [isLoading, setIsLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const { data: historicalData, loading: dataLoading } = useBinanceData(timeFrame);
+  const { latestTrade, isConnected } = useWebSocket('BTCUSDT');
+
+  // Effect for fetching initial data for the day (e.g., open price of the day or a recent kline)
+  useEffect(() => {
+    const fetchInitialDailyData = async () => {
+      try {
+        // Fetch a recent 1-day kline to get an opening price for reference
+        // Or use the /api/bitcoin-price which gives current and 1-min ago price.
+        // For a true 24h change, you might need a dedicated endpoint or logic.
+        const response = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1');
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const openPriceToday = parseFloat(data[0][1]); // Index 1 is Open price for the kline
+          setInitialPriceForDay(openPriceToday);
+          if (currentPrice > 0) { // if currentPrice is already set by historical data
+            setPriceChange(currentPrice - openPriceToday);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching initial daily data:', error);
+      }
+    };
+    fetchInitialDailyData();
+  }, []); // Runs once on mount
+
+  useEffect(() => {
+    if (historicalData) {
+      setCandlestickData(historicalData.candlestick);
+      setVolumeData(historicalData.volume);
+      if (historicalData.candlestick.length > 0) {
+        const lastCandle = historicalData.candlestick[historicalData.candlestick.length - 1];
+        const newCurrentPrice = lastCandle.close;
+        setCurrentPrice(newCurrentPrice);
+        if (initialPriceForDay > 0) {
+          setPriceChange(newCurrentPrice - initialPriceForDay);
+        }
+      }
+      setIsLoading(false);
+    }
+  }, [historicalData, initialPriceForDay]);
+
+  // Update chart data and PriceInfo with latest trade from WebSocket
+  useEffect(() => {
+    if (latestTrade) {
+      const { price, time: tradeTimeMs, quantity } = latestTrade;
+      const tradeTimeSec = Math.floor(tradeTimeMs / 1000);
+
+      setCurrentPrice(price);
+      if (initialPriceForDay > 0) {
+        setPriceChange(price - initialPriceForDay);
+      }
+
+      // Use functional updates for setCandlestickData and setVolumeData
+      // and move the length check inside the callback to use prev state.
+      setCandlestickData(prevCandles => {
+        if (prevCandles.length === 0) return prevCandles; // Do not update if no historical data yet
+
+        const lastCandle = prevCandles[prevCandles.length - 1];
+        // No need to check !lastCandle again as we checked prevCandles.length
+
+        const timeFrameMs = getTimeFrameDurationMs(timeFrame);
+        const lastCandleStartTimeSec = lastCandle.time;
+        const nextCandleStartTimeSec = lastCandleStartTimeSec + timeFrameMs / 1000;
+
+        let updatedCandles = [...prevCandles];
+
+        if (tradeTimeSec >= lastCandleStartTimeSec && tradeTimeSec < nextCandleStartTimeSec) {
+          const updatedLastCandle: CandlestickData = {
+            ...lastCandle,
+            high: Math.max(lastCandle.high, price),
+            low: Math.min(lastCandle.low, price),
+            close: price,
+          };
+          updatedCandles[updatedCandles.length - 1] = updatedLastCandle;
+        } else if (tradeTimeSec >= nextCandleStartTimeSec) {
+           // To get the correct open price for the new candle, access the last candle of the *current* state.
+           const currentLastCandleOpen = prevCandles[prevCandles.length - 1]?.close || price;
+          const newCandle: CandlestickData = {
+            time: nextCandleStartTimeSec, 
+            open: currentLastCandleOpen, 
+            high: price,
+            low: price,
+            close: price,
+          };
+          updatedCandles = [...prevCandles.slice(1), newCandle]; 
+        }
+        return updatedCandles;
+      });
+
+      setVolumeData(prevVolumes => {
+        if (prevVolumes.length === 0) return prevVolumes; // Do not update if no historical data yet
+
+        const lastVolume = prevVolumes[prevVolumes.length - 1];
+        // No need to check !lastVolume again
+
+        const timeFrameMs = getTimeFrameDurationMs(timeFrame);
+        const lastVolumeStartTimeSec = lastVolume.time;
+        const nextVolumeStartTimeSec = lastVolumeStartTimeSec + timeFrameMs / 1000;
+
+        let updatedVolumes = [...prevVolumes];
+
+        if (tradeTimeSec >= lastVolumeStartTimeSec && tradeTimeSec < nextVolumeStartTimeSec) {
+          const updatedLastVolume: VolumeData = {
+            ...lastVolume,
+            value: lastVolume.value + quantity, 
+          };
+          updatedVolumes[updatedVolumes.length - 1] = updatedLastVolume;
+        } else if (tradeTimeSec >= nextVolumeStartTimeSec) {
+          const newVolume: VolumeData = {
+            time: nextVolumeStartTimeSec,
+            value: quantity,
+          };
+          updatedVolumes = [...prevVolumes.slice(1), newVolume];
+        }
+        return updatedVolumes;
+      });
+    }
+  // Only depend on latestTrade and timeFrame. 
+  // CandlestickData and VolumeData updates are handled via functional setState.
+  }, [latestTrade, timeFrame, initialPriceForDay]); // Added initialPriceForDay because it's used directly.
+  
+  const handleTimeFrameChange = useCallback((newTimeFrame: TimeFrame) => {
+    setIsLoading(true);
+    setTimeFrame(newTimeFrame);
+  }, []);
+
+  const handleIndicatorToggle = useCallback((indicator: keyof TechnicalIndicators) => {
+    setIndicators((prev: TechnicalIndicators) => ({ ...prev, [indicator]: !prev[indicator] }));
+  }, []);
+
+  return (
+    <ThemeProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <main className="container mx-auto space-y-6 px-4 py-6">
+          <PriceInfo 
+            currentPrice={currentPrice} 
+            priceChange={priceChange}   
+            isConnected={isConnected}
+          />
+          <ControlPanel
+            timeFrame={timeFrame}
+            onTimeFrameChange={handleTimeFrameChange}
+            indicators={indicators}
+            onIndicatorToggle={handleIndicatorToggle}
+          />
+          <div className="w-full">
+            <BitcoinChart
+              key={timeFrame}
+              candlestickData={candlestickData}
+              volumeData={volumeData}
+              timeFrame={timeFrame}
+              indicators={indicators}
+              isLoading={isLoading || dataLoading} 
+              currentPrice={currentPrice} 
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }
