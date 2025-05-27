@@ -236,7 +236,10 @@ export function BitcoinChart({
   // Conditional rendering logic
   if (!mounted) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-border bg-card">
+      <div 
+        className="flex items-center justify-center rounded-lg border border-border bg-card"
+        style={{ height: `${chartHeight}px` }}
+      >
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span className="text-muted-foreground">Initializing chart...</span>
@@ -247,7 +250,10 @@ export function BitcoinChart({
 
   if (isLoading && !hasValidCandlestickData) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-border bg-card">
+      <div 
+        className="flex items-center justify-center rounded-lg border border-border bg-card"
+        style={{ height: `${chartHeight}px` }}
+      >
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span className="text-muted-foreground">Loading chart data...</span>
@@ -258,7 +264,10 @@ export function BitcoinChart({
 
   if (chartError) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-border bg-card">
+      <div 
+        className="flex items-center justify-center rounded-lg border border-border bg-card"
+        style={{ height: `${chartHeight}px` }}
+      >
         <div className="flex flex-col items-center space-y-2 px-4 text-center">
           <span className="text-red-500">❌ Chart Error</span>
           <span className="text-muted-foreground text-sm">{chartError}</span>
@@ -275,7 +284,10 @@ export function BitcoinChart({
 
   if (!isLoading && !hasValidCandlestickData && !chartError) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg border border-border bg-card">
+      <div 
+        className="flex items-center justify-center rounded-lg border border-border bg-card"
+        style={{ height: `${chartHeight}px` }}
+      >
         <span className="text-muted-foreground">No chart data available.</span>
       </div>
     );
