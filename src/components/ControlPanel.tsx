@@ -40,7 +40,7 @@ export function ControlPanel({
                 "rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200",
                 timeFrame === tf
                   ? "bg-primary text-primary-foreground cursor-not-allowed"
-                  : "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                  : "border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer"
               )}
               title={getTimeFrameDisplayName(tf)}
             >
