@@ -47,9 +47,6 @@ export default function Home() {
         if (data && data.length > 0) {
           const openPriceToday = parseFloat(data[0][1]); // Index 1 là giá Open của kline
           setInitialPriceForDay(openPriceToday);
-          if (currentPrice > 0) { // nếu currentPrice đã được set bởi dữ liệu lịch sử
-            setPriceChange(currentPrice - openPriceToday);
-          }
         }
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu ban đầu của ngày:', error);

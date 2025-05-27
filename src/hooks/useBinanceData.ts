@@ -34,7 +34,7 @@ export function useBinanceData(timeFrame: TimeFrame): UseBinanceDataReturn {
       const rawData = await response.json();
       
       // Chuyển đổi dữ liệu thô từ Binance sang định dạng của chúng ta
-      const klineData: BinanceKlineData[] = rawData.map((item: any[]) => ({
+      const klineData: BinanceKlineData[] = (rawData as any[]).map((item: any[]) => ({
         openTime: item[0],
         open: item[1],
         high: item[2],

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTheme } from './ThemeProvider';
 import { Loader2 } from 'lucide-react';
 import { CandlestickData, VolumeData, TimeFrame } from '@/types/chart';
-import { createChart, IChartApi, ISeriesApi, LineStyle, PriceLineOptions, IPriceLine } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, LineStyle, PriceLineOptions, IPriceLine, Time } from 'lightweight-charts';
 
 interface BitcoinChartProps {
   candlestickData: CandlestickData[];
@@ -169,9 +169,9 @@ export function BitcoinChart({
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Lỗi khởi tạo biểu đồ trong quá trình tạo/tái tạo:', error);
-      setChartError(`Không thể khởi tạo biểu đồ: ${error.message}. Vui lòng thử refresh.`);
+      setChartError(`Không thể khởi tạo biểu đồ: ${(error instanceof Error ? error.message : String(error))}. Vui lòng thử refresh.`);
       if (chartRef.current) { // Nên là null nếu việc tạo thất bại và đã được dọn dẹp, nhưng để phòng thủ.
         chartRef.current.remove();
         chartRef.current = null;
@@ -182,7 +182,7 @@ export function BitcoinChart({
   // Effect để cập nhật dữ liệu candlestick
   useEffect(() => {
     if (candlestickSeriesRef.current && candlestickData) {
-      candlestickSeriesRef.current.setData(candlestickData.map(d => ({ ...d, time: d.time as any })));
+      candlestickSeriesRef.current.setData(candlestickData.map(d => ({ ...d, time: d.time as Time })));
     }
   }, [candlestickData]);
 
@@ -199,7 +199,7 @@ export function BitcoinChart({
       const coloredVolumeData = volumeData.map((item, index) => {
         const candle = candlestickData[index] || candlestickData[candlestickData.length -1];
         const color = candle && typeof candle.open === 'number' && typeof candle.close === 'number' && candle.close >= candle.open ? currentColors.volumeUpColor : currentColors.volumeDownColor;
-        return { ...item, time: item.time as any, color };
+        return { ...item, time: item.time as Time, color };
       });
       volumeSeriesRef.current.setData(coloredVolumeData);
     }
