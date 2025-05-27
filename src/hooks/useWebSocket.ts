@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface WebSocketTradeData {
-  e: string; // Event type (e.g., "trade")
-  E: number; // Event time
-  s: string; // Symbol (e.g., "BTCUSDT")
-  t: number; // Trade ID
-  p: string; // Price
-  q: string; // Quantity
-  b: number; // Buyer order ID
-  a: number; // Seller order ID
-  T: number; // Trade time
-  m: boolean; // Is the buyer the market maker?
-  M: boolean; // Ignore
+  e: string; // Loại sự kiện (ví dụ: "trade")
+  E: number; // Thời gian sự kiện
+  s: string; // Symbol (ví dụ: "BTCUSDT")
+  t: number; // ID giao dịch
+  p: string; // Giá
+  q: string; // Số lượng
+  b: number; // ID lệnh mua
+  a: number; // ID lệnh bán
+  T: number; // Thời gian giao dịch
+  m: boolean; // Người mua có phải là market maker không?
+  M: boolean; // Bỏ qua
 }
 
 interface UseWebSocketReturn {
@@ -27,22 +27,22 @@ export function useWebSocket(symbol: string = 'BTCUSDT'): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef<number>(0);
-  const maxReconnectAttempts = 10; // Increased attempts
+  const maxReconnectAttempts = 10; // Tăng số lần thử
   const baseUrl = 'wss://stream.binance.com:9443/ws';
 
   const connect = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      // Already connected
+      // Đã kết nối rồi
       return;
     }
     try {
       const streamName = `${symbol.toLowerCase()}@trade`;
       const wsUrl = `${baseUrl}/${streamName}`;
       wsRef.current = new WebSocket(wsUrl);
-      console.log(`Connecting to WebSocket: ${wsUrl}`);
+      console.log(`Đang kết nối tới WebSocket: ${wsUrl}`);
 
       wsRef.current.onopen = () => {
-        console.log(`WebSocket connected to ${streamName}`);
+        console.log(`WebSocket đã kết nối tới ${streamName}`);
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
         if (reconnectTimeoutRef.current) {
@@ -57,22 +57,22 @@ export function useWebSocket(symbol: string = 'BTCUSDT'): UseWebSocketReturn {
           if (data.s === symbol) {
             setLatestTrade({
               price: parseFloat(data.p),
-              time: data.T, // Trade time
+              time: data.T, // Thời gian giao dịch
               quantity: parseFloat(data.q),
             });
           }
         } catch (error) {
-          console.error('Error parsing WebSocket trade message:', error);
+          console.error('Lỗi khi phân tích tin nhắn WebSocket trade:', error);
         }
       };
 
       wsRef.current.onclose = (event) => {
-        console.log(`WebSocket disconnected from ${streamName}:`, event.code, event.reason);
+        console.log(`WebSocket đã ngắt kết nối khỏi ${streamName}:`, event.code, event.reason);
         setIsConnected(false);
         
         if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000); // Exponential backoff up to 30s
-          console.log(`Attempting to reconnect in ${delay}ms... (Attempt ${reconnectAttemptsRef.current + 1})`);
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000); // Exponential backoff tối đa 30s
+          console.log(`Đang thử kết nối lại sau ${delay}ms... (Lần thử ${reconnectAttemptsRef.current + 1})`);
           
           if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -82,18 +82,18 @@ export function useWebSocket(symbol: string = 'BTCUSDT'): UseWebSocketReturn {
             connect();
           }, delay);
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          console.error('Max WebSocket reconnect attempts reached.');
+          console.error('Đã đạt số lần thử kết nối lại WebSocket tối đa.');
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error(`WebSocket error on ${streamName}:`, error);
+        console.error(`Lỗi WebSocket trên ${streamName}:`, error);
         setIsConnected(false);
-        // Error event will often be followed by a close event, which handles reconnection.
+        // Sự kiện lỗi thường được theo sau bởi sự kiện đóng, sự kiện đóng sẽ xử lý việc kết nối lại.
       };
 
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      console.error('Lỗi khi tạo kết nối WebSocket:', error);
       setIsConnected(false);
     }
   }, [symbol]);
@@ -104,12 +104,12 @@ export function useWebSocket(symbol: string = 'BTCUSDT'): UseWebSocketReturn {
       reconnectTimeoutRef.current = null;
     }
     if (wsRef.current) {
-      console.log('Manually disconnecting WebSocket...');
+      console.log('Đang ngắt kết nối WebSocket thủ công...');
       wsRef.current.close(1000, 'Manual disconnect');
       wsRef.current = null;
     }
     setIsConnected(false);
-    reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent auto-reconnect after manual disconnect
+    reconnectAttemptsRef.current = maxReconnectAttempts; // Ngăn auto-reconnect sau khi ngắt kết nối thủ công
   }, []);
 
   const reconnect = useCallback(() => {

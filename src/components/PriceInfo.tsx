@@ -20,7 +20,7 @@ export function PriceInfo({
   return (
     <div className="rounded-lg border border-border bg-card p-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        {/* Price Information */}
+        {/* Thông tin giá */}
         <div className="space-y-2">
           <div className="flex items-center space-x-3">
             <h2 className="text-3xl font-bold text-foreground">
@@ -58,38 +58,32 @@ export function PriceInfo({
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center space-x-3">
-          {/* Connection Status */}
-          <div className={cn(
-            "flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium",
-            isConnected 
-              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-              : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-          )}>
+        {/* Điều khiển */}
+        <div className="flex items-center space-x-4">
+          {/* Trạng thái kết nối */}
+          <div className="flex items-center space-x-2">
             {isConnected ? (
-              <Wifi className="h-4 w-4" />
+              <>
+                <Wifi className="h-5 w-5 text-green-500" />
+                <span className="text-sm text-green-600 dark:text-green-400">Trực tiếp</span>
+              </>
             ) : (
-              <WifiOff className="h-4 w-4" />
+              <>
+                <WifiOff className="h-5 w-5 text-red-500" />
+                <span className="text-sm text-red-600 dark:text-red-400">Ngắt kết nối</span>
+              </>
             )}
-            <span>{isConnected ? 'Live' : 'Disconnected'}</span>
           </div>
-
-          {/* Refresh Button - REMOVED */}
-          {/* 
+          
+          {/* Nút refresh */}
           <button
-            onClick={onRefresh}
-            className={cn(
-              "flex items-center space-x-2 rounded-md px-4 py-2 text-sm font-medium",
-              "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-              "transition-colors duration-200"
-            )}
-            title="Fetch current price"
+            onClick={() => window.location.reload()}
+            className="flex items-center space-x-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+            title="Làm mới dữ liệu"
           >
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span>Làm mới</span>
           </button>
-          */}
         </div>
       </div>
     </div>

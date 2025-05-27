@@ -19,11 +19,11 @@ export function ControlPanel({
 }: ControlPanelProps) {
   return (
     <div className="space-y-4">
-      {/* Timeframe Selection */}
+      {/* Lựa chọn khung thời gian */}
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="mb-3 flex items-center space-x-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-foreground">Time Frame</h3>
+          <h3 className="text-lg font-semibold text-foreground">Khung thời gian</h3>
         </div>
         
         <div className="flex flex-wrap gap-2">

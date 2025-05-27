@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Convert Binance kline data to our chart format
+// Chuyển đổi dữ liệu kline Binance sang định dạng biểu đồ của chúng ta
 export function convertBinanceData(klineData: BinanceKlineData[]): {
   candlestick: CandlestickData[];
   volume: VolumeData[];
@@ -15,7 +15,7 @@ export function convertBinanceData(klineData: BinanceKlineData[]): {
   const volume: VolumeData[] = [];
 
   klineData.forEach((kline) => {
-    const time = Math.floor(kline.openTime / 1000); // Convert to seconds
+    const time = Math.floor(kline.openTime / 1000); // Chuyển đổi sang giây
     const open = parseFloat(kline.open);
     const high = parseFloat(kline.high);
     const low = parseFloat(kline.low);
@@ -33,14 +33,14 @@ export function convertBinanceData(klineData: BinanceKlineData[]): {
     volume.push({
       time,
       value: vol,
-      color: close >= open ? '#26a69a' : '#ef5350', // Green for bullish, red for bearish
+      color: close >= open ? '#26a69a' : '#ef5350', // Xanh cho tăng giá, đỏ cho giảm giá
     });
   });
 
   return { candlestick, volume };
 }
 
-// Get Binance interval string from TimeFrame
+// Lấy chuỗi interval Binance từ TimeFrame
 export function getBinanceInterval(timeFrame: TimeFrame): string {
   const intervalMap: Record<TimeFrame, string> = {
     '1m': '1m',
@@ -63,7 +63,7 @@ export function getBinanceInterval(timeFrame: TimeFrame): string {
   return intervalMap[timeFrame] || '5m';
 }
 
-// Format price with appropriate decimal places
+// Định dạng giá
 export function formatPrice(price: number): string {
   if (price >= 1000) {
     return price.toLocaleString('en-US', {
@@ -83,43 +83,43 @@ export function formatPrice(price: number): string {
   }
 }
 
-// Format volume with K, M, B suffixes
+// Định dạng volume với hậu tố K, M, B
 export function formatVolume(volume: number): string {
   if (volume >= 1e9) {
-    return (volume / 1e9).toFixed(2) + 'B';
+    return `${(volume / 1e9).toFixed(1)}B`;
   } else if (volume >= 1e6) {
-    return (volume / 1e6).toFixed(2) + 'M';
+    return `${(volume / 1e6).toFixed(1)}M`;
   } else if (volume >= 1e3) {
-    return (volume / 1e3).toFixed(2) + 'K';
+    return `${(volume / 1e3).toFixed(1)}K`;
+  } else {
+    return volume.toFixed(0);
   }
-  return volume.toFixed(2);
 }
 
-// Format percentage change
+// Định dạng phần trăm
 export function formatPercentage(percentage: number): string {
-  const sign = percentage >= 0 ? '+' : '';
-  return `${sign}${percentage.toFixed(2)}%`;
+  return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
 }
 
-// Get time frame display name
+// Lấy tên hiển thị cho timeframe
 export function getTimeFrameDisplayName(timeFrame: TimeFrame): string {
-  const displayMap: Record<TimeFrame, string> = {
-    '1m': '1 Minute',
-    '3m': '3 Minutes',
-    '5m': '5 Minutes',
-    '15m': '15 Minutes',
-    '30m': '30 Minutes',
-    '1h': '1 Hour',
-    '2h': '2 Hours',
-    '4h': '4 Hours',
-    '6h': '6 Hours',
-    '8h': '8 Hours',
-    '12h': '12 Hours',
-    '1d': '1 Day',
-    '3d': '3 Days',
-    '1w': '1 Week',
-    '1M': '1 Month',
+  const displayNames: Record<TimeFrame, string> = {
+    '1m': '1 Phút',
+    '3m': '3 Phút',
+    '5m': '5 Phút',
+    '15m': '15 Phút',
+    '30m': '30 Phút',
+    '1h': '1 Giờ',
+    '2h': '2 Giờ',
+    '4h': '4 Giờ',
+    '6h': '6 Giờ',
+    '8h': '8 Giờ',
+    '12h': '12 Giờ',
+    '1d': '1 Ngày',
+    '3d': '3 Ngày',
+    '1w': '1 Tuần',
+    '1M': '1 Tháng',
   };
   
-  return displayMap[timeFrame] || timeFrame;
+  return displayNames[timeFrame] || timeFrame;
 } 

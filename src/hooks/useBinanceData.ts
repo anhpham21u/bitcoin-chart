@@ -20,20 +20,20 @@ export function useBinanceData(timeFrame: TimeFrame): UseBinanceDataReturn {
       setError(null);
 
       const interval = getBinanceInterval(timeFrame);
-      const limit = 500; // Get last 500 candles
+      const limit = 500; // Lấy 500 nến cuối cùng
       
-      // Binance API endpoint for klines (candlestick data)
+      // Endpoint API Binance cho klines (dữ liệu nến)
       const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${interval}&limit=${limit}`;
       
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Lỗi HTTP! status: ${response.status}`);
       }
       
       const rawData = await response.json();
       
-      // Convert raw Binance data to our format
+      // Chuyển đổi dữ liệu thô từ Binance sang định dạng của chúng ta
       const klineData: BinanceKlineData[] = rawData.map((item: any[]) => ({
         openTime: item[0],
         open: item[1],
@@ -56,8 +56,8 @@ export function useBinanceData(timeFrame: TimeFrame): UseBinanceDataReturn {
       });
       
     } catch (err) {
-      console.error('Error fetching Binance data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      console.error('Lỗi khi lấy dữ liệu Binance:', err);
+      setError(err instanceof Error ? err.message : 'Không thể lấy dữ liệu');
     } finally {
       setLoading(false);
     }

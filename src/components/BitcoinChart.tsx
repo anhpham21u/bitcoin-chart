@@ -37,7 +37,7 @@ export function BitcoinChart({
     setMounted(true);
   }, []);
 
-  // Effect for chart creation and theme changes
+  // Effect để tạo biểu đồ và thay đổi theme
   useEffect(() => {
     if (!mounted) {
       return;
@@ -45,8 +45,8 @@ export function BitcoinChart({
 
     const currentHasValidCandlestickData = candlestickData && candlestickData.length > 0 && candlestickData.some(d => d && typeof d.close === 'number' && !isNaN(d.close));
 
-    // If conditions to render the chart are NOT met, or there's already a chart error displayed,
-    // ensure any existing chart is cleaned up and do not proceed.
+    // Nếu điều kiện để render biểu đồ KHÔNG được đáp ứng, hoặc đã có lỗi biểu đồ được hiển thị,
+    // đảm bảo biểu đồ hiện tại được dọn dẹp và không tiếp tục.
     if (isLoading || !currentHasValidCandlestickData || chartError) {
       if (chartRef.current) {
         chartRef.current.remove();
@@ -55,36 +55,36 @@ export function BitcoinChart({
         volumeSeriesRef.current = null;
         priceLineRef.current = null;
       }
-      // If we are not loading and have no data, but no explicit chartError is set yet,
-      // we don't set a chartError here as the JSX handles "No chart data available."
-      // If chartError is already set (e.g. from previous failed init), we keep it.
+      // Nếu chúng ta không đang loading và không có dữ liệu, nhưng chưa có chartError được set,
+      // chúng ta không set chartError ở đây vì JSX xử lý "No chart data available."
+      // Nếu chartError đã được set (ví dụ từ lần init thất bại trước), chúng ta giữ nó.
       return;
     }
 
-    // At this point: mounted=true, isLoading=false, currentHasValidCandlestickData=true, chartError=null (or will be overwritten on success).
+    // Tại điểm này: mounted=true, isLoading=false, currentHasValidCandlestickData=true, chartError=null (hoặc sẽ được ghi đè khi thành công).
     if (!chartContainerRef.current) {
-      console.error('BitcoinChart [Critical]: chartContainerRef.current is NULL when chart rendering is expected.');
-      // This state indicates a more severe issue, potentially a race condition or flawed JSX structure.
-      setChartError('Chart container element is missing. Please refresh or contact support.');
+      console.error('BitcoinChart [Nghiêm trọng]: chartContainerRef.current là NULL khi render biểu đồ được mong đợi.');
+      // Trạng thái này cho thấy vấn đề nghiêm trọng hơn, có thể là race condition hoặc cấu trúc JSX có lỗi.
+      setChartError('Phần tử container biểu đồ bị thiếu. Vui lòng refresh hoặc liên hệ hỗ trợ.');
       return;
     }
 
     const containerWidth = chartContainerRef.current.clientWidth;
-    // chartHeight is from component state, defaults to 600.
+    // chartHeight từ component state, mặc định là 600.
 
     if (containerWidth <= 0 || chartHeight <= 0) {
-      console.error(`BitcoinChart [Critical]: Invalid chart dimensions. Width: ${containerWidth}, Height: ${chartHeight}. Chart cannot be created.`);
-      // Ensure any old chart is cleaned up if dimensions become invalid after it was created.
+      console.error(`BitcoinChart [Nghiêm trọng]: Kích thước biểu đồ không hợp lệ. Width: ${containerWidth}, Height: ${chartHeight}. Không thể tạo biểu đồ.`);
+      // Đảm bảo biểu đồ cũ được dọn dẹp nếu kích thước trở nên không hợp lệ sau khi nó được tạo.
       if (chartRef.current) {
         chartRef.current.remove();
         chartRef.current = null;
       }
-      setChartError(`Chart dimensions are invalid (Width: ${containerWidth}px, Height: ${chartHeight}px). This might be due to the container not being visible or having zero size. Please ensure the chart container is correctly sized in the layout.`);
+      setChartError(`Kích thước biểu đồ không hợp lệ (Width: ${containerWidth}px, Height: ${chartHeight}px). Điều này có thể do container không hiển thị hoặc có kích thước bằng 0. Vui lòng đảm bảo container biểu đồ được định kích thước chính xác trong layout.`);
       return;
     }
 
-    // If a chart instance already exists (e.g. due to theme change, but not data change),
-    // remove it before creating a new one.
+    // Nếu instance biểu đồ đã tồn tại (ví dụ do thay đổi theme, nhưng không phải thay đổi dữ liệu),
+    // xóa nó trước khi tạo cái mới.
     if (chartRef.current) {
       chartRef.current.remove();
       chartRef.current = null;
@@ -94,7 +94,7 @@ export function BitcoinChart({
     }
     
     try {
-      // Simplified isDark logic as 'system' theme is removed
+      // Logic isDark đơn giản hóa vì theme 'system' đã được loại bỏ
       const isDark = theme === 'dark';
       
       const colors = {
@@ -109,8 +109,8 @@ export function BitcoinChart({
       };
 
       const chart = createChart(chartContainerRef.current, {
-        width: containerWidth, // Use the checked width
-        height: chartHeight,   // Use the state height
+        width: containerWidth, // Sử dụng width đã kiểm tra
+        height: chartHeight,   // Sử dụng height từ state
         layout: {
           background: { color: colors.background },
           textColor: colors.textColor,
@@ -149,7 +149,7 @@ export function BitcoinChart({
         borderVisible: false,
       });
       
-      setChartError(null); // Important: Reset any previous chart error on successful creation.
+      setChartError(null); // Quan trọng: Reset lỗi biểu đồ trước đó khi tạo thành công.
 
       const handleResize = () => {
         if (chartContainerRef.current && chartRef.current) {
@@ -158,38 +158,38 @@ export function BitcoinChart({
       };
       window.addEventListener('resize', handleResize);
 
-      // Return cleanup function for this effect
+      // Trả về hàm cleanup cho effect này
       return () => {
         window.removeEventListener('resize', handleResize);
         if (chartRef.current) {
-          // console.log('BitcoinChart [Debug]: Cleaning up chart from useEffect return.');
+          // console.log('BitcoinChart [Debug]: Dọn dẹp biểu đồ từ useEffect return.');
           chartRef.current.remove();
           chartRef.current = null;
-          // Series refs will be implicitly invalid as they belong to the removed chart.
+          // Series refs sẽ không hợp lệ ngầm định vì chúng thuộc về biểu đồ đã bị xóa.
         }
       };
 
     } catch (error: any) {
-      console.error('Chart Initialization Error during create/recreate:', error);
-      setChartError(`Failed to initialize chart: ${error.message}. Please try refreshing.`);
-      if (chartRef.current) { // Should be null if creation failed and was cleaned up, but defensive.
+      console.error('Lỗi khởi tạo biểu đồ trong quá trình tạo/tái tạo:', error);
+      setChartError(`Không thể khởi tạo biểu đồ: ${error.message}. Vui lòng thử refresh.`);
+      if (chartRef.current) { // Nên là null nếu việc tạo thất bại và đã được dọn dẹp, nhưng để phòng thủ.
         chartRef.current.remove();
         chartRef.current = null;
       }
     }
   }, [mounted, theme, chartHeight, isLoading, chartError]);
 
-  // Effect for updating candlestick data
+  // Effect để cập nhật dữ liệu candlestick
   useEffect(() => {
     if (candlestickSeriesRef.current && candlestickData) {
       candlestickSeriesRef.current.setData(candlestickData.map(d => ({ ...d, time: d.time as any })));
     }
   }, [candlestickData]);
 
-  // Effect for updating volume data
+  // Effect để cập nhật dữ liệu volume
   useEffect(() => {
     if (volumeSeriesRef.current && volumeData && candlestickData) {
-        // Simplified isDark logic as 'system' theme is removed
+        // Logic isDark đơn giản hóa vì theme 'system' đã được loại bỏ
         const isDark = theme === 'dark';
         const currentColors = {
             volumeUpColor: isDark ? 'rgba(38, 166, 154, 0.5)' : 'rgba(76, 175, 80, 0.5)',
@@ -205,7 +205,7 @@ export function BitcoinChart({
     }
   }, [volumeData, candlestickData, theme]);
 
-  // Effect for updating current price line
+  // Effect để cập nhật đường giá hiện tại
   useEffect(() => {
     if (candlestickSeriesRef.current && chartRef.current) {
       if (priceLineRef.current) {
@@ -219,7 +219,7 @@ export function BitcoinChart({
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
-          title: 'Current',
+          title: 'Hiện tại',
           lineVisible: true,
         };
         priceLineRef.current = candlestickSeriesRef.current.createPriceLine(priceLineOptions);
@@ -229,7 +229,7 @@ export function BitcoinChart({
 
   const hasValidCandlestickData = candlestickData && candlestickData.length > 0 && candlestickData.some(d => d && typeof d.close === 'number' && !isNaN(d.close));
 
-  // Conditional rendering logic
+  // Logic render có điều kiện
   if (!mounted) {
     return (
       <div 
@@ -238,7 +238,7 @@ export function BitcoinChart({
       >
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="text-muted-foreground">Initializing chart...</span>
+          <span className="text-muted-foreground">Đang khởi tạo biểu đồ...</span>
         </div>
       </div>
     );
@@ -252,7 +252,7 @@ export function BitcoinChart({
       >
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="text-muted-foreground">Loading chart data...</span>
+          <span className="text-muted-foreground">Đang tải dữ liệu biểu đồ...</span>
         </div>
       </div>
     );
@@ -265,13 +265,13 @@ export function BitcoinChart({
         style={{ height: `${chartHeight}px` }}
       >
         <div className="flex flex-col items-center space-y-2 px-4 text-center">
-          <span className="text-red-500">❌ Chart Error</span>
+          <span className="text-red-500">❌ Lỗi biểu đồ</span>
           <span className="text-muted-foreground text-sm">{chartError}</span>
           <button 
             onClick={() => window.location.reload()}
             className="mt-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
           >
-            Refresh Page
+            Refresh trang
           </button>
         </div>
       </div>
@@ -284,7 +284,7 @@ export function BitcoinChart({
         className="flex items-center justify-center rounded-lg border border-border bg-card"
         style={{ height: `${chartHeight}px` }}
       >
-        <span className="text-muted-foreground">No chart data available.</span>
+        <span className="text-muted-foreground">Không có dữ liệu biểu đồ.</span>
       </div>
     );
   }
@@ -293,7 +293,7 @@ export function BitcoinChart({
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">
-          Bitcoin Price Chart ({timeFrame})
+          Biểu đồ giá Bitcoin ({timeFrame})
         </h3>
       </div>
       
@@ -304,8 +304,8 @@ export function BitcoinChart({
       />
       
       <div className="mt-4 text-xs text-muted-foreground">
-        <p>• Drag to pan • Scroll to zoom • Volume chart shows at bottom 30%</p>
-        <p>• Green/Red candles indicate price movement • Real-time data via WebSocket</p>
+        <p>• Kéo để di chuyển • Cuộn để zoom • Biểu đồ volume hiển thị ở 30% dưới cùng</p>
+        <p>• Nến xanh/đỏ cho biết chuyển động giá • Dữ liệu real-time qua WebSocket</p>
       </div>
     </div>
   );
