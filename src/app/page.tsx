@@ -9,7 +9,7 @@ import { PriceInfo } from '@/components/PriceInfo';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useBinanceData } from '@/hooks/useBinanceData';
 import { CandlestickData, VolumeData, TimeFrame } from '@/types/chart';
-import { getBinanceInterval } from '@/lib/utils'; // Để chuyển đổi timeframe sang ms
+// import { getBinanceInterval } from '@/lib/utils'; // Để chuyển đổi timeframe sang ms
 
 // Hàm hỗ trợ để lấy thời lượng timeframe tính bằng milliseconds
 const getTimeFrameDurationMs = (tf: TimeFrame): number => {
