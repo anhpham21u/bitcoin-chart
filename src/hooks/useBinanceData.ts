@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChartData, TimeFrame, BinanceKlineData } from '@/types/chart';
 import { convertBinanceData, getBinanceInterval } from '@/lib/utils';
-import { calculateRSI, calculateMACD } from '@/lib/indicators';
 
 interface UseBinanceDataReturn {
   data: ChartData | null;
@@ -51,17 +50,11 @@ export function useBinanceData(timeFrame: TimeFrame): UseBinanceDataReturn {
 
       const { candlestick, volume } = convertBinanceData(klineData);
       
-      // Calculate technical indicators
-      const rsi = calculateRSI(candlestick);
-      const macd = calculateMACD(candlestick);
-
       setData({
         candlestick,
         volume,
-        rsi,
-        macd,
       });
-
+      
     } catch (err) {
       console.error('Error fetching Binance data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -74,10 +67,5 @@ export function useBinanceData(timeFrame: TimeFrame): UseBinanceDataReturn {
     fetchData();
   }, [fetchData]);
 
-  return {
-    data,
-    loading,
-    error,
-    fetchData,
-  };
+  return { data, loading, error, fetchData };
 } 

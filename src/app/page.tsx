@@ -8,7 +8,7 @@ import { ControlPanel } from '@/components/ControlPanel';
 import { PriceInfo } from '@/components/PriceInfo';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useBinanceData } from '@/hooks/useBinanceData';
-import { CandlestickData, VolumeData, TimeFrame, TechnicalIndicators } from '@/types/chart';
+import { CandlestickData, VolumeData, TimeFrame } from '@/types/chart';
 import { getBinanceInterval } from '@/lib/utils'; // For timeframe to ms conversion
 
 // Helper to get timeframe duration in milliseconds
@@ -30,7 +30,6 @@ export default function Home() {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [priceChange, setPriceChange] = useState<number>(0); // This will represent change from initialPriceForDay
   const [initialPriceForDay, setInitialPriceForDay] = useState<number>(0); // Store a reference price for % change calculation
-  const [indicators, setIndicators] = useState<TechnicalIndicators>({ rsi: false, macd: false });
   const [isLoading, setIsLoading] = useState(true);
 
   const { data: historicalData, loading: dataLoading } = useBinanceData(timeFrame);
@@ -160,10 +159,6 @@ export default function Home() {
     setTimeFrame(newTimeFrame);
   }, []);
 
-  const handleIndicatorToggle = useCallback((indicator: keyof TechnicalIndicators) => {
-    setIndicators((prev: TechnicalIndicators) => ({ ...prev, [indicator]: !prev[indicator] }));
-  }, []);
-
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-background text-foreground">
@@ -177,8 +172,6 @@ export default function Home() {
           <ControlPanel
             timeFrame={timeFrame}
             onTimeFrameChange={handleTimeFrameChange}
-            indicators={indicators}
-            onIndicatorToggle={handleIndicatorToggle}
           />
           <div className="w-full">
             <BitcoinChart
@@ -186,7 +179,6 @@ export default function Home() {
               candlestickData={candlestickData}
               volumeData={volumeData}
               timeFrame={timeFrame}
-              indicators={indicators}
               isLoading={isLoading || dataLoading} 
               currentPrice={currentPrice} 
             />

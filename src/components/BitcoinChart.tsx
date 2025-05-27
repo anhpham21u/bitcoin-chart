@@ -3,14 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from './ThemeProvider';
 import { Loader2 } from 'lucide-react';
-import { CandlestickData, VolumeData, TimeFrame, TechnicalIndicators } from '@/types/chart';
+import { CandlestickData, VolumeData, TimeFrame } from '@/types/chart';
 import { createChart, IChartApi, ISeriesApi, LineStyle, PriceLineOptions, IPriceLine } from 'lightweight-charts';
 
 interface BitcoinChartProps {
   candlestickData: CandlestickData[];
   volumeData: VolumeData[];
   timeFrame: TimeFrame;
-  indicators: TechnicalIndicators;
   isLoading: boolean;
   currentPrice: number;
 }
@@ -19,7 +18,6 @@ export function BitcoinChart({
   candlestickData,
   volumeData,
   timeFrame,
-  indicators,
   isLoading,
   currentPrice,
 }: BitcoinChartProps) {
@@ -297,10 +295,6 @@ export function BitcoinChart({
         <h3 className="text-lg font-semibold text-foreground">
           Bitcoin Price Chart ({timeFrame})
         </h3>
-        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-          {indicators.rsi && <span className="text-blue-600">RSI (Coming Soon)</span>}
-          {indicators.macd && <span className="text-purple-600">MACD (Coming Soon)</span>}
-        </div>
       </div>
       
       <div 
