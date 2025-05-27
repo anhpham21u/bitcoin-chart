@@ -10,8 +10,6 @@ export function Header() {
   const cycleTheme = () => {
     if (theme === 'light') {
       setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
     } else {
       setTheme('light');
     }
@@ -21,10 +19,8 @@ export function Header() {
     switch (theme) {
       case 'light':
         return <Sun className="h-5 w-5" />;
-      case 'dark':
-        return <Moon className="h-5 w-5" />;
       default:
-        return <Monitor className="h-5 w-5" />;
+        return <Moon className="h-5 w-5" />;
     }
   };
 

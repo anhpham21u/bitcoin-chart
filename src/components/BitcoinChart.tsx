@@ -96,9 +96,8 @@ export function BitcoinChart({
     }
     
     try {
-      const isDark = theme === 'dark' || 
-        (theme === 'system' && typeof window !== 'undefined' && 
-        window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Simplified isDark logic as 'system' theme is removed
+      const isDark = theme === 'dark';
       
       const colors = {
         background: isDark ? '#0a0a0a' : '#ffffff',
@@ -192,9 +191,8 @@ export function BitcoinChart({
   // Effect for updating volume data
   useEffect(() => {
     if (volumeSeriesRef.current && volumeData && candlestickData) {
-        const isDark = theme === 'dark' || 
-        (theme === 'system' && typeof window !== 'undefined' && 
-        window.matchMedia('(prefers-color-scheme: dark)').matches);
+        // Simplified isDark logic as 'system' theme is removed
+        const isDark = theme === 'dark';
         const currentColors = {
             volumeUpColor: isDark ? 'rgba(38, 166, 154, 0.5)' : 'rgba(76, 175, 80, 0.5)',
             volumeDownColor: isDark ? 'rgba(239, 83, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)',
